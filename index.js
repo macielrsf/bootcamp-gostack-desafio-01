@@ -6,12 +6,31 @@ const server = express();
 server.use(express.json());
 
 let countReq = 0;
-let projects = [];
+let projects = [{
+    id: 1,
+    title: 'Node.js',
+    tasks: []
+}];
 const fieldsRequired = ['id', 'title', 'tasks'];
+
+/* Helpers */
+function findProject(req) {
+    var result = projects.filter(item => {
+        return item.id === parseInt(req.params.id);
+    });
+
+    if ( result.length > 0 ) {
+        return result[0];
+    }
+
+    return null;
+}
 
 /* Validation Middleware's */
 function checkProjectExists(req, res, next) {
-    if ( !req.params.id ) {
+    var project = findProject(req);
+
+    if ( !project ) {
         return res.status(400).json({
             status: 'error', 
             msg: 'Project does not exists'
@@ -44,8 +63,52 @@ function reqCounter(req, res, next) {
 /* Global use Request Counter middleware */
 server.use(reqCounter);
 
+server.get('/projects', (req, res) => {
+    return res.json({
+        status: 'success',
+        projects
+    });
+});
+
+server.get('/projects/:id', checkProjectExists, (req, res) => {
+    const project = findProject(req);
+
+    return res.json({
+        status: 'success',
+        project
+    });
+});
+
 server.post('/projects', payloadRequired, (req, res) => {
     projects.push(req.body);
+
+    return res.json({
+        status: 'success',
+        projects
+    });
+});
+
+server.put('/projects/:id', checkProjectExists, payloadRequired, (req, res) => {
+    const { title } = req.body;
+
+    let project = findProject(req); 
+    let idx = projects.indexOf(project);
+
+    project.title = title;
+    
+    projects[idx] = project;
+
+    return res.json({
+        status: 'success',
+        project
+    });
+});
+
+server.delete('/projects/:id', checkProjectExists, (req, res) => {
+    let project = findProject(req);
+    let idx = projects.indexOf(project);
+
+    projects.splice(idx, 1);
 
     return res.json({
         status: 'success',
