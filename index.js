@@ -15,15 +15,8 @@ const fieldsRequired = ['id', 'title', 'tasks'];
 
 /* Helpers */
 function findProject(req) {
-    var result = projects.filter(item => {
-        return item.id === parseInt(req.params.id);
-    });
-
-    if ( result.length > 0 ) {
-        return result[0];
-    }
-
-    return null;
+    const { id } = req.params;
+    return projects.find(p => p.id == id); 
 }
 
 /* Validation Middleware's */
@@ -55,8 +48,7 @@ function payloadRequired(req, res, next) {
 
 /* Request Counter Middleware */
 function reqCounter(req, res, next) {
-    countReq += 1;
-    console.log(`${countReq} requests done.`);
+    console.count('Requisições feitas.');
     return next();
 }
 
@@ -105,14 +97,27 @@ server.put('/projects/:id', checkProjectExists, payloadRequired, (req, res) => {
 });
 
 server.delete('/projects/:id', checkProjectExists, (req, res) => {
-    let project = findProject(req);
-    let idx = projects.indexOf(project);
+    const { id } = req.params;
+
+    const idx = projects.findIndex(p => p.id == id);
 
     projects.splice(idx, 1);
 
     return res.json({
+        status: 'success'
+    });
+});
+
+server.post('/projects/:id/tasks', checkProjectExists, (req, res) => {
+    const { title } = req.body;
+
+    const project = findProject(req);
+
+    project.tasks.push(title);
+
+    return res.json({
         status: 'success',
-        projects
+        project
     });
 });
 
