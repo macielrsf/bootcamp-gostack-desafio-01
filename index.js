@@ -5,7 +5,6 @@ const server = express();
 /* Add JSON Support for HTTP requests */
 server.use(express.json());
 
-let countReq = 0;
 let projects = [{
     id: 1,
     title: 'Node.js',
@@ -48,7 +47,7 @@ function payloadRequired(req, res, next) {
 
 /* Request Counter Middleware */
 function reqCounter(req, res, next) {
-    console.count('Requisições feitas.');
+    console.count('Requisições feitas: ');
     return next();
 }
 
